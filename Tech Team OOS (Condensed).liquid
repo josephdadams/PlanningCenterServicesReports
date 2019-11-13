@@ -2,7 +2,7 @@
 CUSTOMIZATION:
 
 CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 1
-{% assign notes_column_1_category = "Person" %}
+{% assign notes_column_1_category = "Leader" %}
 CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 1
 {% assign notes_column_2_category = "Video" %}
 CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 2
@@ -10,12 +10,12 @@ CATEGORY NAME OF NOTES TO PRINT FOR COLUMN 2
 TEAMS OF PEOPLE TO PRINT REPORTS FOR
 {% array categories_to_print = "Tech Team", "Sound Team" %}
 POSITION TO PRINT (if you have one specific position outside of a TEAM you'd also like to print)
-{% assign position_to_print = "Sound" %}
+{% assign position_to_print = "" %}
 NOTES TO PRINT WITH PLAN (any note fields you'd like to print with the whole plan)
 {% array notes_categories = "General", "Tech Team" %}
 
 PRINT ITEM TIMES
-{% assign print_plan_item_times = true %}
+{% assign print_plan_item_times = false %}
 -->
 <html>
     <head>
@@ -27,14 +27,15 @@ PRINT ITEM TIMES
 		#plan thead { display: table-header-group; border: solid 4px black; }
 		#plan { border-collapse: collapse; border: solid 4px black; width: 100%; font-size: 9pt; }
 		#plan th { background-color: black; color: white; }
+        .header { background-color: black; color: white; font-size: 11pt; }
 		#header { width: 100%; }
 		.times { width: 100%; border: solid 2px #999; }
 		.times thead th { background-color: #eee; }
 		.times tbody th { width: 10%; }
 		.times tbody td { width: 40%; }
         
-        .evenpreservice { background-color: #f5f5f5; color: #000000; font-style: italic; }
-        .oddpreservice { background-color: #f5f5f5; color: #000000; font-style: italic; }
+        .evenpreservice { background-color: #999999; color: #000000; font-style: italic; }
+        .oddpreservice { background-color: #999999; color: #000000; font-style: italic; }
         .even { background-color: #ffffff; color: #000000; }
         .odd { background-color: #cccccc; color: #000000; }
         .checkbox { text-align:center; color:#cccccc; height: 15px; width: 15px; border: 1px solid #000; background-color: #fff; float:left; margin-right:3px;}
@@ -220,13 +221,18 @@ PRINT ITEM TIMES
 	            </tr>
 		  </thead>
             {% assign current_header_title = "" %}
+            {% assign encountered_duringservice_item = 0 %}
 		    {% for item in plan.items %}
 			{% case item.item_type %}
 				{% when 'Header' %}
               		{% assign current_header_title = item.title %}
               		{% assign current_header_printed = 0 %}
 				{% else %}
-					<tr class="{% cycle 'even', 'odd' %}{% if item.is_preservice or item.is_postservice %}preservice{% endif %}"">
+                   	{% if item.is_preservice == false and encountered_duringservice_item == 0 %}
+              			{% assign encountered_duringservice_item = 1 %}
+              			<tr><td class="header" colspan="5">START OF SERVICE</td></tr>
+              		{% endif %}
+					<tr class="{% cycle 'even', 'odd' %}{% if item.is_preservice or item.is_postservice %}preservice{% endif %}">
 						<td class="item">
                        {% if item.is_preservice or item.is_postservice %}
                           {% if print_plan_item_times == true %}
@@ -237,6 +243,12 @@ PRINT ITEM TIMES
                            			{% endif %}
                            		{% endfor %}
                        		{% endfor %}
+                          {% else %}
+                          	<span style="background-color:eeeeee;font-size:7pt;">
+                              {% if item.length != "0:00" %}
+                     				{{ item.length }} {% if item.is_preservice %}before service starts{% endif %}{% if item.is_postservice %}after service ends{% endif %}
+                                {% endif %}
+	                        </span>
                     	  {% endif %}
 					   {% else %}
      						 <span style="background-color:eeeeee;font-size:7pt;font-weight:bold;">
